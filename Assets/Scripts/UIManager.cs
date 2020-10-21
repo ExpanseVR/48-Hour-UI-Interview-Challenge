@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using InterviewTest.Scripts;
+using TMPro;
 
 namespace InterviewTest.UI
 {
-    public class UIManager : MonoBehaviour
+    public class UIManager : MonoSingleton<UIManager>
     {
         public enum Toggles
         {
@@ -20,7 +22,18 @@ namespace InterviewTest.UI
 
         [SerializeField]
         private RawImage _favoriteShow, _favoriteColour;
-        // Start is called before the first frame update
+
+        [SerializeField]
+        private Button _revealColourButton;
+
+        [SerializeField]
+        private TextMeshProUGUI _catFactText;
+
+        [SerializeField]
+        private Image _catImage;
+
+        [SerializeField]
+        private Sprite[] _catImageSelection;
 
         public void Toggled(int toggleID)
         {
@@ -30,8 +43,7 @@ namespace InterviewTest.UI
                 //check for which toggle selected
                 Toggles toggleType = _toggles[toggleID].GetComponent<ToggleType>().GetToggleType();
 
-                _favoriteShow.gameObject.SetActive(false);
-                _favoriteColour.gameObject.SetActive(false);
+                ResetSlides();
 
                 switch (toggleType)
                 {
@@ -41,11 +53,17 @@ namespace InterviewTest.UI
                         break;
                     case Toggles.RandomFact:
                         //Display random cat fact from catfact.ninja
-                        StartCoroutine(CatFact());
+                        StartCoroutine(RandomCatFact.Instance.GetCatFact((catFact) =>
+                        {
+                            if (catFact != null)
+                            {
+                                CatFact(catFact);
+                            }
+                        }));
                         break;
                     case Toggles.FovoriteColour:
                         //Display favorite colour
-                        _favoriteColour.gameObject.SetActive(true); //TODO: change to a shader effect for blue
+                        _revealColourButton.gameObject.SetActive(true); //TODO: change to a shader effect for blue
                         break;
                     case Toggles.MiniGame:
                         //Run minigame
@@ -58,10 +76,28 @@ namespace InterviewTest.UI
             }
         }
 
-        IEnumerator CatFact ()
+        private void ResetSlides()
         {
-            Debug.Log("Here is a cat fact");
-            yield return null;
+            _favoriteShow.gameObject.SetActive(false);
+            _favoriteColour.gameObject.SetActive(false);
+            _revealColourButton.gameObject.SetActive(false);
+            _catFactText.gameObject.SetActive(false);
+        }
+
+        private void CatFact (string newCatFact)
+        {
+            //Display cat fact
+            _catFactText.text = newCatFact;
+            _catFactText.gameObject.SetActive(true);
+            //generate random cat image and display
+            int randomNum = Random.Range(0, _catImageSelection.Length);
+            _catImage.sprite = _catImageSelection[randomNum];
+        }
+
+        public void RevealColour ()
+        {
+            _revealColourButton.gameObject.SetActive(false);
+            _favoriteColour.gameObject.SetActive(true);
         }
 
         private void LaunchMiniGame ()
