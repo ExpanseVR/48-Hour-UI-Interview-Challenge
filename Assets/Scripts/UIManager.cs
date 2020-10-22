@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using InterviewTest.Scripts;
 using TMPro;
@@ -34,6 +32,9 @@ namespace InterviewTest.UI
 
         [SerializeField]
         private Sprite[] _catImageSelection;
+
+        [SerializeField]
+        private GameObject _miniGame;
 
         public void Toggled(int toggleID)
         {
@@ -82,6 +83,7 @@ namespace InterviewTest.UI
             _favoriteColour.gameObject.SetActive(false);
             _revealColourButton.gameObject.SetActive(false);
             _catFactText.gameObject.SetActive(false);
+            _miniGame.SetActive(false);
         }
 
         private void CatFact (string newCatFact)
@@ -102,7 +104,7 @@ namespace InterviewTest.UI
 
         private void LaunchMiniGame ()
         {
-            Debug.Log("launching mini-game");
+            _miniGame.SetActive(true);
         }
     }
 }

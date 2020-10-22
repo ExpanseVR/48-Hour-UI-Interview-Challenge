@@ -12,20 +12,30 @@ public class Tower : MonoBehaviour
     public static event Action<bool> OnSelectRingReset;
 
     [SerializeField]
-    Transform _towerHolder;
+    private Transform _towerHolder;
 
     [SerializeField]
-    Image _image;
+    private Image _image;
 
-    Transform _placementZone;
+    [SerializeField]
+    private float _firingRate;
 
-    bool _isPlaced = false;
-    bool _isheld = false;
-    bool _cantBeHeld = false;
+    [SerializeField]
+    private GameObject _bullet;
+
+    [SerializeField]
+    private Transform _spawnPoint, _bulletParent;
+
+    private Transform _placementZone;
+
+    private bool _isPlaced = false;
+    private bool _isheld = false;
+    private bool _cantBeHeld = false;
 
     private void OnEnable()
     {
         PlacementZone.OnCanPlace += OverPlacementZone;
+        MiniGameManager.OnIsRoundCommenced += HasRoundStarted;
         Tower.OnHeld += NotHeld;
     }
 
@@ -37,7 +47,7 @@ public class Tower : MonoBehaviour
             if (Input.GetMouseButtonDown(1))
             {
                 TankSelected();
-                OnHeld(false);
+                OnHeld?.Invoke(false);
             }
             //check if over place zone
             //if so change color to reflect placeable
@@ -49,7 +59,7 @@ public class Tower : MonoBehaviour
             return;
 
         if (_isPlaced)
-            OnSelected(this.transform);
+            OnSelected?.Invoke(this.transform);
         else
         {
             transform.position = _towerHolder.position;
@@ -58,7 +68,7 @@ public class Tower : MonoBehaviour
             {
                 _image.raycastTarget = false;
                 OnHeld(true);
-                OnSelectRingReset(false);
+                OnSelectRingReset?.Invoke(false);
             }
             else
                 _image.raycastTarget = true;
@@ -75,9 +85,17 @@ public class Tower : MonoBehaviour
             _placementZone = toPlace;
             transform.position = _placementZone.position;
             _isPlaced = true;
-            OnPlaced();
+            OnPlaced?.Invoke();
             OnHeld(false);
         }
+    }
+
+    public void HasRoundStarted(bool hasStarted)
+    {
+        if (hasStarted)
+            StartCoroutine("Firing");
+        else
+            StopCoroutine("Firing");
     }
 
     public void NotHeld (bool isHeld)
@@ -86,10 +104,22 @@ public class Tower : MonoBehaviour
         {
             _cantBeHeld = isHeld;
         }
-    }    
+    }
+
+    IEnumerator Firing()
+    {
+        while (true & _isPlaced)
+        {
+            var newBullet = Instantiate(_bullet, _spawnPoint.position, Quaternion.identity);
+            newBullet.transform.SetParent(_bulletParent.transform);
+            newBullet.GetComponent<Rigidbody2D>().AddForce(this.transform.up * 15000);
+            yield return new WaitForSeconds(_firingRate);
+        }
+    }
 
     private void OnDisable()
     {
         PlacementZone.OnCanPlace -= OverPlacementZone;
+        MiniGameManager.OnIsRoundCommenced -= HasRoundStarted;
     }
 }

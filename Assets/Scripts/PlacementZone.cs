@@ -18,7 +18,7 @@ public class PlacementZone : MonoBehaviour
     {
         if (!_hasTower)
         {
-            OnCanPlace(this.transform);
+            OnCanPlace?.Invoke(this.transform);
             _isTowerOver = true;
         }
     }
